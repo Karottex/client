@@ -44,12 +44,13 @@ export default {
         const userQuery = query(collection(firestore, 'users'), where('uid', '==', user.uid));
         const userSnapshot = await getDocs(userQuery);
         const userData = userSnapshot.docs[0].data();
-        const flameRequests = userData.flameRequests.map(req => req.uid) || [];
+        const flameRequests = userData.flameRequests || [];
 
         if (flameRequests.length === 0) {
           this.friends = [];
         } else {
-          const q = query(collection(firestore, 'users'), where('uid', 'in', flameRequests));
+          const flameRequestUIDs = flameRequests.map(req => req.uid);
+          const q = query(collection(firestore, 'users'), where('uid', 'in', flameRequestUIDs));
           const snapshot = await getDocs(q);
           const friendsList = [];
           snapshot.forEach(doc => {
@@ -75,15 +76,17 @@ export default {
         const userQuery = query(collection(firestore, 'users'), where('uid', '==', user.uid));
         const userSnapshot = await getDocs(userQuery);
         const userDoc = userSnapshot.docs[0];
-        
-        await updateDoc(userDoc.ref, {
-          flameRequests: arrayRemove(uid)
-        });
-        
+        const userData = userDoc.data();
+
+        const flameRequestToRemove = userData.flameRequests.find(req => req.uid === uid);
+        if (flameRequestToRemove) {
+          await updateDoc(userDoc.ref, {
+            flameRequests: arrayRemove(flameRequestToRemove)
+          });
+        }
 
         // Aktualisieren Sie die friends-Liste nach dem Entfernen
         this.loadFriends();
-        console.log("hi")
       } catch (err) {
         this.error = err;
         console.error('Error removing friend:', err);
@@ -95,6 +98,7 @@ export default {
   }
 };
 </script>
+
 
 
 
