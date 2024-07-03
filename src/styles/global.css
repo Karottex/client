@@ -1,0 +1,89 @@
+/* Global Styles */
+
+/* Set body background to white */
+body {
+    background-color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fitting font */
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Set container background to white and add some padding */
+  .container {
+    background-color: #ffffff;
+    padding: 20px;
+  }
+  
+  /* Set card background to white, add some padding and a box shadow */
+  .card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-body{
+    margin-top: 20px;
+  }
+  
+  /* Set card header background to red and text color to white */
+  .card-header {
+    background-color: #ff4d4f; /* lovely red */
+    color: #ffffff;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  /* Set form input and button styles */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    width: 98%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+    outline: none;
+    margin-top: 10px; /* Add space from the top */
+  }
+
+  button{
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+    outline: none;
+    margin-top: 10px; /* Add space from the top */
+  }
+  
+  button {
+    background-color: #1890ff; /* cold blue */
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #40a9ff; /* lighter blue on hover */
+  }
+  
+  /* Error message styles */
+  .error-message {
+    color: #ff4d4f; /* lovely red */
+    font-size: 14px;
+  }
+  
+  /* Link styles */
+  a {
+    color: #1890ff; /* cold blue */
+    text-decoration: none;
+  }
+  
+  a:hover {
+    color: #40a9ff; /* lighter blue on hover */
+  }
+  
