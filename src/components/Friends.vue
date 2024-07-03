@@ -9,15 +9,18 @@
         <div v-for="friend in friends" :key="friend.uid" class="friend-item">
           <img :src="friend.photoURL" alt="Friend's profile picture" class="friend-picture" />
           <span>{{ friend.displayName }}</span>
+          <button @click="acceptFriend(friend.uid)" class="accept-button">✔️</button>
+          <button @click="removeFriend(friend.uid)" class="remove-button">❌</button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
+
 <script>
 import NavBar from '@/components/NavBar.vue';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, updateDoc, arrayRemove } from 'firebase/firestore';
 import { firestore } from '@/firebaseConfig';
 
 export default {
@@ -43,8 +46,6 @@ export default {
         const userData = userSnapshot.docs[0].data();
         const flameRequests = userData.flameRequests.map(req => req.uid) || [];
 
-        console.log('FlameRequests UIDs:', flameRequests);
-
         if (flameRequests.length === 0) {
           this.friends = [];
         } else {
@@ -54,13 +55,38 @@ export default {
           snapshot.forEach(doc => {
             friendsList.push(doc.data());
           });
-          console.log('Friends List:', friendsList);
           this.friends = friendsList;
         }
       } catch (err) {
         this.error = err;
       } finally {
         this.loading = false;
+      }
+    },
+    async acceptFriend(uid) {
+      // Akzeptieren eines Freundes (noch keine Aktion)
+      console.log(`Accepted friend with UID: ${uid}`);
+    },
+    async removeFriend(uid) {
+      try {
+        const user = this.$store.getters.user.data;
+        if (!user) throw new Error('User not logged in');
+
+        const userQuery = query(collection(firestore, 'users'), where('uid', '==', user.uid));
+        const userSnapshot = await getDocs(userQuery);
+        const userDoc = userSnapshot.docs[0];
+        
+        await updateDoc(userDoc.ref, {
+          flameRequests: arrayRemove(uid)
+        });
+        
+
+        // Aktualisieren Sie die friends-Liste nach dem Entfernen
+        this.loadFriends();
+        console.log("hi")
+      } catch (err) {
+        this.error = err;
+        console.error('Error removing friend:', err);
       }
     }
   },
@@ -69,6 +95,7 @@ export default {
   }
 };
 </script>
+
 
 
 <style scoped>
@@ -93,5 +120,17 @@ export default {
   margin-right: 10px;
   width: 50px;
   height: 50px;
+}
+.accept-button {
+  color: green;
+  width: 30px;
+  height: 30px;
+  margin-left: 50px;
+}
+.remove-button {
+  color: red;
+  width: 30px;
+  height: 30px;
+  margin-left: 10px;
 }
 </style>
