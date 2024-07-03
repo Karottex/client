@@ -1,17 +1,28 @@
 <template>
   <div class="container">
     <NavBar />
+    <div class="selection">
+      <button @click="selectedSection = 'requests'" :class="{ active: selectedSection === 'requests' }">Friend Requests</button>
+      <button @click="selectedSection = 'chats'" :class="{ active: selectedSection === 'chats' }">Chats</button>
+    </div>
     <div class="content">
-      <h1>Friends</h1>
-      <div v-if="loading" class="loading">Loading friends...</div>
-      <div v-else-if="error" class="error">Error loading friends: {{ error.message }}</div>
-      <div v-else>
-        <div v-for="friend in friends" :key="friend.uid" class="friend-item">
-          <img :src="friend.photoURL" alt="Friend's profile picture" class="friend-picture" />
-          <span>{{ friend.displayName }}</span>
-          <button @click="acceptFriend(friend.uid)" class="accept-button">✔️</button>
-          <button @click="removeFriend(friend.uid)" class="remove-button">❌</button>
+      <div v-if="selectedSection === 'requests'">
+        <h1>Friend Requests</h1>
+        <div v-if="loading" class="loading">Loading friend requests...</div>
+        <div v-else-if="error" class="error">Error loading friend requests: {{ error.message }}</div>
+        <div v-else>
+          <div v-for="friend in friends" :key="friend.uid" class="friend-item">
+            <img :src="friend.photoURL" alt="Friend's profile picture" class="friend-picture" />
+            <span>{{ friend.displayName }}</span>
+            <button @click="acceptFriend(friend.uid)" class="accept-button">✔️</button>
+            <button @click="removeFriend(friend.uid)" class="remove-button">❌</button>
+          </div>
         </div>
+      </div>
+      <div v-else-if="selectedSection === 'chats'">
+        <h1>Chats</h1>
+        <!-- Chats content goes here -->
+        <div class="placeholder">No chats available yet.</div>
       </div>
     </div>
   </div>
@@ -32,7 +43,8 @@ export default {
     return {
       friends: [],
       loading: true,
-      error: null
+      error: null,
+      selectedSection: 'requests' // Added to manage the selected section
     };
   },
   methods: {
@@ -65,7 +77,6 @@ export default {
       }
     },
     async acceptFriend(uid) {
-      // Akzeptieren eines Freundes (noch keine Aktion)
       console.log(`Accepted friend with UID: ${uid}`);
     },
     async removeFriend(uid) {
@@ -85,7 +96,6 @@ export default {
           });
         }
 
-        // Aktualisieren Sie die friends-Liste nach dem Entfernen
         this.loadFriends();
       } catch (err) {
         this.error = err;
@@ -99,13 +109,27 @@ export default {
 };
 </script>
 
-
-
-
 <style scoped>
 .container {
   background-color: #ffffff;
   padding: 20px;
+}
+.selection {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.selection button {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  color: gray;
+}
+.selection button.active {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
 }
 .content {
   margin-top: 20px;
@@ -130,11 +154,26 @@ export default {
   width: 30px;
   height: 30px;
   margin-left: 50px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
 }
 .remove-button {
   color: red;
   width: 30px;
   height: 30px;
   margin-left: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+}
+.placeholder {
+  color: #888;
+  text-align: center;
+  font-size: 16px;
+  margin-top: 20px;
 }
 </style>
+

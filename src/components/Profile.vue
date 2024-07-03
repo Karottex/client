@@ -441,4 +441,7 @@ export default {
 .flame-requests {
   margin-top: 20px;
 }
+.friends-button{
+  align: center;
+}
 </style>
