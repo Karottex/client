@@ -6,6 +6,7 @@
     import Profile from '../components/Profile.vue';
     import UserProfile from '../components/UserProfile.vue';
     import Friends from '../components/Friends.vue';
+    import Chat from '@/components/Chat.vue';
 
 
 
@@ -45,6 +46,12 @@
         path: '/friends',
         name: 'Friends',
         component: Friends
+        },
+        {
+            path: '/chat/:chatId',
+            name: 'Chat',
+            component: Chat,
+            props: true,
         }
     ]
 

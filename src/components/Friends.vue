@@ -21,8 +21,12 @@
       </div>
       <div v-else-if="selectedSection === 'chats'">
         <h1>Chats</h1>
-        <!-- Chats content goes here -->
-        <div class="placeholder">No chats available yet.</div>
+        <div v-if="chats.length === 0" class="placeholder">No chats available yet.</div>
+        <div v-else>
+          <div v-for="chat in chats" :key="chat.chatId" class="chat-item" @click="goToChat(chat.chatId)">
+            <div>Chat between {{ chat.participants.join(', ') }}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -31,7 +35,7 @@
 
 <script>
 import NavBar from '@/components/NavBar.vue';
-import { collection, getDocs, query, where, updateDoc, arrayRemove } from 'firebase/firestore';
+import { collection, getDocs, query, where, updateDoc, arrayRemove, addDoc } from 'firebase/firestore';
 import { firestore } from '@/firebaseConfig';
 
 export default {
@@ -42,9 +46,10 @@ export default {
   data() {
     return {
       friends: [],
+      chats: [],
       loading: true,
       error: null,
-      selectedSection: 'requests' // Added to manage the selected section
+      selectedSection: 'requests'
     };
   },
   methods: {
@@ -76,8 +81,59 @@ export default {
         this.loading = false;
       }
     },
+    async loadChats() {
+      try {
+        const user = this.$store.getters.user.data;
+        if (!user) throw new Error('User not logged in');
+
+        const chatsQuery = query(collection(firestore, 'chats'), where('participants', 'array-contains', user.uid));
+        const chatsSnapshot = await getDocs(chatsQuery);
+        const chatsList = [];
+        chatsSnapshot.forEach(doc => {
+          const chatData = doc.data();
+          chatData.chatId = doc.id; // Store the chat ID for routing
+          chatsList.push(chatData);
+        });
+        this.chats = chatsList;
+      } catch (err) {
+        this.error = err;
+      } finally {
+        this.loading = false;
+      }
+    },
     async acceptFriend(uid) {
-      console.log(`Accepted friend with UID: ${uid}`);
+      try {
+        const user = this.$store.getters.user.data;
+        if (!user) throw new Error('User not logged in');
+
+        const userQuery = query(collection(firestore, 'users'), where('uid', '==', user.uid));
+        const userSnapshot = await getDocs(userQuery);
+        const userDoc = userSnapshot.docs[0];
+        const userData = userDoc.data();
+
+        const flameRequestToRemove = userData.flameRequests.find(req => req.uid === uid);
+        if (flameRequestToRemove) {
+          await updateDoc(userDoc.ref, {
+            flameRequests: arrayRemove(flameRequestToRemove)
+          });
+
+          // Create a new chat between the user and the friend
+          const chatData = {
+            participants: [user.uid, uid],
+            messages: []
+          };
+
+          await addDoc(collection(firestore, 'chats'), chatData);
+
+          // Reload chats
+          this.loadFriends();
+          this.loadChats();
+        }
+
+      } catch (err) {
+        this.error = err;
+        console.error('Error accepting friend:', err);
+      }
     },
     async removeFriend(uid) {
       try {
@@ -101,13 +157,18 @@ export default {
         this.error = err;
         console.error('Error removing friend:', err);
       }
+    },
+    goToChat(chatId) {
+      this.$router.push({ name: 'Chat', params: { chatId } });
     }
   },
   mounted() {
     this.loadFriends();
+    this.loadChats();
   }
 };
 </script>
+
 
 <style scoped>
 .container {
@@ -138,10 +199,11 @@ export default {
   color: #cc0000;
   font-weight: bold;
 }
-.friend-item {
+.friend-item, .chat-item {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  cursor: pointer; /* Add pointer cursor for chat items */
 }
 .friend-picture {
   border-radius: 50%;
@@ -176,4 +238,3 @@ export default {
   margin-top: 20px;
 }
 </style>
-
