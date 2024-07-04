@@ -6,7 +6,7 @@
       <div class="messages">
         <div v-if="chatData.messages && chatData.messages.length > 0">
           <div v-for="message in chatData.messages" :key="message.timestamp" class="message">
-            <strong>{{ message.sender }}:</strong> {{ message.text }}
+            <strong>{{ getUserDisplayName(message.sender) }}:</strong> {{ message.text }}
           </div>
         </div>
         <div v-else class="placeholder">No messages yet.</div>
@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, collection, query, where, getDocs } from 'firebase/firestore';
 import { firestore } from '@/firebaseConfig';
 
 export default {
@@ -32,6 +32,7 @@ export default {
     return {
       chatData: null,
       newMessage: '',
+      usersData: {},
       error: null,
       loading: true,
     };
@@ -42,6 +43,7 @@ export default {
         const chatDoc = await getDoc(doc(firestore, 'chats', this.chatId));
         if (chatDoc.exists()) {
           this.chatData = chatDoc.data();
+          await this.loadUsersData(this.chatData.participants);
         } else {
           throw new Error('Chat does not exist');
         }
@@ -51,6 +53,24 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async loadUsersData(uids) {
+      try {
+        const usersQuery = query(collection(firestore, 'users'), where('uid', 'in', uids));
+        const usersSnapshot = await getDocs(usersQuery);
+        const usersData = {};
+        usersSnapshot.forEach(doc => {
+          const data = doc.data();
+          usersData[data.uid] = data.displayName;
+        });
+        this.usersData = usersData;
+      } catch (err) {
+        this.error = err;
+        console.error('Error loading user data:', err);
+      }
+    },
+    getUserDisplayName(uid) {
+      return this.usersData[uid] || uid;
     },
     async sendMessage() {
       if (this.newMessage.trim() === '') return;
